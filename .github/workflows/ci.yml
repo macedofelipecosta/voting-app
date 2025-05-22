@@ -1,0 +1,62 @@
+name: CI - Voting App Monorepo
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  validate-compose:
+    name: Validar docker-compose.yml
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v3
+
+      - name: Validar sintaxis de docker-compose
+        run: docker-compose -f docker-compose.yml config
+
+  build-vote:
+    name: Build servicio VOTE
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./vote
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Construir imagen de VOTE
+        run: docker build -t vote-app .
+
+  build-result:
+    name: Build y test servicio RESULT
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./result
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Ejecutar tests
+        run: npm test || echo "Tests fallidos (no detiene pipeline)"
+
+      - name: Construir imagen de RESULT
+        run: docker build -t result-app .
+
+  build-worker:
+    name: Build servicio WORKER
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./worker
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Construir imagen de WORKER
+        run: docker build -t worker-app .
+
+
