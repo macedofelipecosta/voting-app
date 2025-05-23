@@ -42,7 +42,7 @@ jobs:
         run: npm install
 
       - name: Ejecutar tests
-        run: npm test || echo "Tests fallidos (no detiene pipeline)"
+        run: npm test
 
       - name: Construir imagen de RESULT
         run: docker build -t result-app .
@@ -62,23 +62,21 @@ jobs:
   sonarcloud:
     name: Análisis SonarCloud
     runs-on: ubuntu-latest
-    needs: build-result  # Espera a que el job anterior termine
+    needs: build-result
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Java (requerido por SonarScanner)
+      - name: Set up Java
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Descargar SonarCloud Scanner
-        uses: SonarSource/sonarcloud-github-action@master
+      - name: Ejecutar análisis con SonarCloud
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
         with:
           args: >
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-
+            -Dsonar.projectKey=macedofelipecosta_voting-app
+            -Dsonar.organization=macedofelipecosta-1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-
