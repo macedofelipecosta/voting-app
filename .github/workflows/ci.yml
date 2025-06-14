@@ -34,6 +34,8 @@ jobs:
 
       - name: Login a ECR
         uses: aws-actions/amazon-ecr-login@v1
+        env:
+          AWS_REGION: us-east-1
 
       - name: Taggear imagen VOTE
         run: docker tag vote-app:latest ${{ secrets.ECR_VOTE_REPO }}
@@ -52,6 +54,8 @@ jobs:
 
       - name: Login a ECR
         uses: aws-actions/amazon-ecr-login@v1
+        env:
+          AWS_REGION: us-east-1
 
       - name: Taggear imagen RESULT
         run: docker tag result-app:latest ${{ secrets.ECR_RESULT_REPO }}
@@ -70,6 +74,8 @@ jobs:
 
       - name: Login a ECR
         uses: aws-actions/amazon-ecr-login@v1
+        env:
+          AWS_REGION: us-east-1
 
       - name: Taggear imagen WORKER
         run: docker tag worker-app:latest ${{ secrets.ECR_WORKER_REPO }}
