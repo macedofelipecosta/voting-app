@@ -1,82 +1,78 @@
-name: CI - Voting App Monorepo
+name: CI Voting App
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ "main", "dev", "test" ]
   pull_request:
-    branches: [main, develop]
+    branches: [ "main", "dev", "test" ]
 
 jobs:
-  validate-compose:
-    name: Validar docker-compose.yml
+  validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout del código
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Validar sintaxis de docker-compose
-        run: docker compose -f docker-compose.yml config
+      - name: Validar docker-compose
+        run: docker-compose config
 
-  build-vote:
-    name: Build servicio VOTE
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./vote
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Construir imagen de VOTE
-        run: docker build -t vote-app .
-
-  build-result:
-    name: Build y test servicio RESULT
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./result
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Instalar dependencias
-        run: npm install
-
-      - name: Ejecutar tests
-        run: npm test || echo "Bypass del test"
-
-      - name: Construir imagen de RESULT
-        run: docker build -t result-app .
-
-  build-worker:
-    name: Build servicio WORKER
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./worker
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Construir imagen de WORKER
-        run: docker build -t worker-app .
-
-  sonarcloud:
-    name: Análisis SonarCloud
-    runs-on: ubuntu-latest
-    needs: build-result
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Java
-        uses: actions/setup-java@v3
+      - name: Análisis con SonarCloud (único proyecto)
+        uses: SonarSource/sonarcloud-github-action@v2
         with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Ejecutar análisis con SonarCloud
-        uses: SonarSource/sonarqube-scan-action@v5.0.0
-        with:
-          args: >
-            -Dsonar.projectKey=macedofelipecosta_voting-app
-            -Dsonar.organization=macedofelipecosta-1
+          projectBaseDir: .
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  build-vote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Construir imagen VOTE
+        run: docker build -t vote-app ./vote
+
+      - name: Login a ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Taggear imagen VOTE
+        run: docker tag vote-app:latest ${{ secrets.ECR_VOTE_REPO }}
+
+      - name: Push imagen VOTE a ECR
+        run: docker push ${{ secrets.ECR_VOTE_REPO }}
+
+  build-result:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Construir imagen RESULT
+        run: docker build -t result-app ./result
+
+      - name: Login a ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Taggear imagen RESULT
+        run: docker tag result-app:latest ${{ secrets.ECR_RESULT_REPO }}
+
+      - name: Push imagen RESULT a ECR
+        run: docker push ${{ secrets.ECR_RESULT_REPO }}
+
+  build-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Construir imagen WORKER
+        run: docker build -t worker-app ./worker
+
+      - name: Login a ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Taggear imagen WORKER
+        run: docker tag worker-app:latest ${{ secrets.ECR_WORKER_REPO }}
+
+      - name: Push imagen WORKER a ECR
+        run: docker push ${{ secrets.ECR_WORKER_REPO }}
