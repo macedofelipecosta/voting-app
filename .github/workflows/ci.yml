@@ -2,9 +2,9 @@ name: CI Voting App
 
 on:
   push:
-    branches: [ "main", "dev", "test" ]
+    branches: [ "main", "develop", "test" ]
   pull_request:
-    branches: [ "main", "dev", "test" ]
+    branches: [ "main", "develop", "test" ]
 
 jobs:
   validate:
@@ -32,6 +32,13 @@ jobs:
       - name: Construir imagen VOTE
         run: docker build -t vote-app ./vote
 
+      - name: Configurar credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
       - name: Login a ECR
         uses: aws-actions/amazon-ecr-login@v1
 
@@ -50,6 +57,13 @@ jobs:
       - name: Construir imagen RESULT
         run: docker build -t result-app ./result
 
+      - name: Configurar credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
       - name: Login a ECR
         uses: aws-actions/amazon-ecr-login@v1
 
@@ -67,6 +81,13 @@ jobs:
 
       - name: Construir imagen WORKER
         run: docker build -t worker-app ./worker
+
+      - name: Configurar credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
       - name: Login a ECR
         uses: aws-actions/amazon-ecr-login@v1
