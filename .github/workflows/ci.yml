@@ -2,9 +2,9 @@ name: CI Voting App
 
 on:
   push:
-    branches: [ "main", "dev", "test" ]
+    branches: [ "main", "develop", "test" ]
   pull_request:
-    branches: [ "main", "dev", "test" ]
+    branches: [ "main", "develop", "test" ]
 
 jobs:
   validate:
